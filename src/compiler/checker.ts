@@ -265,7 +265,7 @@ namespace ts {
             (preserveConstEnums && moduleState === ModuleInstanceState.ConstEnumOnly);
     }
 
-    export function createTypeChecker(host: TypeCheckerHost, produceDiagnostics: boolean): TypeChecker {
+    export function createTypeChecker(host: TypeCheckerHost, produceDiagnostics: boolean, inTestEnvironment: boolean): TypeChecker {
         const getPackagesSet: () => Map<true> = memoize(() => {
             const set = createMap<true>();
             host.getSourceFiles().forEach(sf => {
@@ -23396,7 +23396,7 @@ namespace ts {
             }
 
             // Public properties are otherwise accessible.
-            if (!(flags & ModifierFlags.NonPublicAccessibilityModifier)) {
+            if (!(flags & ModifierFlags.NonPublicAccessibilityModifier) || inTestEnvironment) {
                 return true;
             }
 

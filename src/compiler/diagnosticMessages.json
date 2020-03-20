@@ -5589,5 +5589,9 @@
     "An optional chain cannot contain private identifiers.": {
         "category": "Error",
         "code": 18030
+    },
+    "Export all members of modules and publish all members of classes.": {
+        "category": "Message",
+        "code": 18031
     }
 }

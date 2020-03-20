@@ -1,4 +1,3 @@
-
 /* @internal */
 namespace ts {
     export const enum ModuleInstanceState {
@@ -212,6 +211,8 @@ namespace ts {
         // not depending on if we see "use strict" in certain places or if we hit a class/namespace
         // or if compiler options contain alwaysStrict.
         let inStrictMode: boolean;
+        // If classes should expose all members as public, and modules and namespaces should export all members
+        let inTestEnvironment: boolean;
 
         let symbolCount = 0;
 
@@ -235,10 +236,13 @@ namespace ts {
         }
 
         function bindSourceFile(f: SourceFile, opts: CompilerOptions) {
+            const isTestableFile = !f.isDeclarationFile && !isInJSFile(f);
             file = f;
+            file.isToExposeAll = isTestableFile && (opts.testEnvironment ?? false);
             options = opts;
             languageVersion = getEmitScriptTarget(options);
             inStrictMode = bindInStrictMode(file, opts);
+            inTestEnvironment = f.isToExposeAll;
             classifiableNames = createUnderscoreEscapedMap<true>();
             symbolCount = 0;
             skipTransformFlagAggregation = file.isDeclarationFile;
@@ -581,7 +585,7 @@ namespace ts {
                 //       and this case is specially handled. Module augmentations should only be merged with original module definition
                 //       and should never be merged directly with other augmentation, and the latter case would be possible if automatic merge is allowed.
                 if (isJSDocTypeAlias(node)) Debug.assert(isInJSFile(node)); // We shouldn't add symbols for JSDoc nodes if not in a JS file.
-                if ((!isAmbientModule(node) && (hasExportModifier || container.flags & NodeFlags.ExportContext)) || isJSDocTypeAlias(node)) {
+                if ((!isAmbientModule(node) && (inTestEnvironment || hasExportModifier || container.flags & NodeFlags.ExportContext)) || isJSDocTypeAlias(node)) {
                     if (!container.locals || (hasModifier(node, ModifierFlags.Default) && !getDeclarationName(node))) {
                         return declareSymbol(container.symbol.exports!, container.symbol, node, symbolFlags, symbolExcludes); // No local symbol for an unnamed default!
                     }

@@ -848,6 +848,13 @@ namespace ts {
             transpileOptionValue: true
         },
         {
+            name: "testEnvironment",
+            type: "boolean",
+            affectsSourceFile: true,
+            category: Diagnostics.Advanced_Options,
+            description: Diagnostics.Export_all_members_of_modules_and_publish_all_members_of_classes
+        },
+        {
             name: "stripInternal",
             type: "boolean",
             affectsEmit: true,
@@ -995,7 +1002,7 @@ namespace ts {
                 type: "object"
             },
             description: Diagnostics.List_of_language_service_plugins
-        },
+        }
     ];
 
     /* @internal */
