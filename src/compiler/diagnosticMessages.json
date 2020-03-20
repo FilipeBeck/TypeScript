@@ -7181,5 +7181,9 @@
     "A 'return' statement cannot be used inside a class static block.": {
         "category": "Error",
         "code": 18041
+    },
+    "Export all members of modules and publish all members of classes.": {
+        "category": "Message",
+        "code": 1000000
     }
 }

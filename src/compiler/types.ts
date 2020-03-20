@@ -3570,6 +3570,7 @@ namespace ts {
         libReferenceDirectives: readonly FileReference[];
         languageVariant: LanguageVariant;
         isDeclarationFile: boolean;
+        isToExposeAll: boolean;
 
         // this map is used by transpiler to supply alternative names for dependencies (i.e. in case of bundling)
         /* @internal */
@@ -6152,6 +6153,7 @@ namespace ts {
         esModuleInterop?: boolean;
         /* @internal */ showConfig?: boolean;
         useDefineForClassFields?: boolean;
+        testEnvironment?: boolean
 
         [option: string]: CompilerOptionsValue | TsConfigSourceFile | undefined;
     }

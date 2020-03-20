@@ -1828,7 +1828,8 @@ namespace ts {
         }
 
         function getDiagnosticsProducingTypeChecker() {
-            return diagnosticsProducingTypeChecker || (diagnosticsProducingTypeChecker = createTypeChecker(program, /*produceDiagnostics:*/ true));
+            const inTestEnvironment = options.testEnvironment ?? false;
+            return diagnosticsProducingTypeChecker || (diagnosticsProducingTypeChecker = createTypeChecker(program, /*produceDiagnostics:*/ true, inTestEnvironment));
         }
 
         function dropDiagnosticsProducingTypeChecker() {
@@ -1836,7 +1837,8 @@ namespace ts {
         }
 
         function getTypeChecker() {
-            return noDiagnosticsTypeChecker || (noDiagnosticsTypeChecker = createTypeChecker(program, /*produceDiagnostics:*/ false));
+            const inTestEnvironment = options.testEnvironment ?? false;
+            return noDiagnosticsTypeChecker || (noDiagnosticsTypeChecker = createTypeChecker(program, /*produceDiagnostics:*/ false, inTestEnvironment));
         }
 
         function emit(sourceFile?: SourceFile, writeFileCallback?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnlyDtsFiles?: boolean, transformers?: CustomTransformers, forceDtsEmit?: boolean): EmitResult {
@@ -1851,6 +1853,14 @@ namespace ts {
         }
 
         function emitWorker(program: Program, sourceFile: SourceFile | undefined, writeFileCallback: WriteFileCallback | undefined, cancellationToken: CancellationToken | undefined, emitOnlyDtsFiles?: boolean, customTransformers?: CustomTransformers, forceDtsEmit?: boolean): EmitResult {
+            if (program.getCompilerOptions().testEnvironment) {
+                for (const file of program.getSourceFiles()) {
+                    if (file.isToExposeAll) {
+                        exposeAllDeclarationsForTestPurposes(file);
+                    }
+                }
+            }
+
             if (!forceDtsEmit) {
                 const result = handleNoEmitOptions(program, sourceFile, writeFileCallback, cancellationToken);
                 if (result) return result;
@@ -1881,6 +1891,37 @@ namespace ts {
             performance.mark("afterEmit");
             performance.measure("Emit", "beforeEmit", "afterEmit");
             return emitResult;
+
+            function exposeAllDeclarationsForTestPurposes(node: Node): void {
+                let statements: NodeArray<Statement> | NodeArray<ClassElement>;
+
+                if (isSourceFile(node)) {
+                    statements = node.statements;
+                }
+                else if (isModuleDeclaration(node) && node.body && isModuleBlock(node.body)) {
+                    statements = node.body.statements;
+                }
+                else {
+                    statements = [] as any as NodeArray<Statement>;
+                }
+
+                for (const statement of statements) {
+                    const isExposableStatement = !(isImportDeclaration(statement) || isExpressionStatement(statement));
+                    const isAlreadyExposed = statement.modifiers?.some(modifier => modifier.kind === SyntaxKind.ExportKeyword);
+
+                    if (isExposableStatement && !isAlreadyExposed) {
+                        const modifiers = Array.from(statement.modifiers ?? []);
+                        const exposureModifier = createNode(SyntaxKind.ExportKeyword) as Modifier;
+                        modifiers.unshift(exposureModifier);
+                        statement.modifiers = createNodeArray(modifiers);
+
+                        // Add export flag
+                        statement.modifierFlagsCache |= ModifierFlags.Export;
+
+                        exposeAllDeclarationsForTestPurposes(statement);
+                    }
+                }
+            }
         }
 
         function getSourceFile(fileName: string): SourceFile | undefined {

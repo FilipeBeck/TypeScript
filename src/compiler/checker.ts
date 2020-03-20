@@ -300,7 +300,7 @@ namespace ts {
             (preserveConstEnums && moduleState === ModuleInstanceState.ConstEnumOnly);
     }
 
-    export function createTypeChecker(host: TypeCheckerHost, produceDiagnostics: boolean): TypeChecker {
+    export function createTypeChecker(host: TypeCheckerHost, produceDiagnostics: boolean, inTestEnvironment: boolean): TypeChecker {
         const getPackagesMap = memoize(() => {
             // A package name maps to true when we detect it has .d.ts files.
             // This is useful as an approximation of whether a package bundles its own types.
@@ -27837,7 +27837,7 @@ namespace ts {
             }
 
             // Public properties are otherwise accessible.
-            if (!(flags & ModifierFlags.NonPublicAccessibilityModifier)) {
+            if (!(flags & ModifierFlags.NonPublicAccessibilityModifier) || inTestEnvironment) {
                 return true;
             }
 

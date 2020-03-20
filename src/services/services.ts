@@ -635,6 +635,7 @@ namespace ts {
         public bindSuggestionDiagnostics?: DiagnosticWithLocation[];
 
         public isDeclarationFile!: boolean;
+        public isToExposeAll!: boolean;
         public isDefaultLib!: boolean;
         public hasNoDefaultLib!: boolean;
         public externalModuleIndicator!: Node; // The first node that causes this file to be an external module

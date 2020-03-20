@@ -1021,6 +1021,13 @@ namespace ts {
             defaultValueDescription: "false"
         },
         {
+            name: "testEnvironment",
+            type: "boolean",
+            affectsSourceFile: true,
+            category: Diagnostics.Advanced_Options,
+            description: Diagnostics.Export_all_members_of_modules_and_publish_all_members_of_classes
+        },
+        {
             name: "stripInternal",
             type: "boolean",
             affectsEmit: true,
