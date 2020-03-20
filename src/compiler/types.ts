@@ -3188,8 +3188,7 @@ namespace ts {
         file: Path;
     }
 
-    // TODO: This should implement TypeCheckerHost but that's an internal type.
-    export interface Program extends ScriptReferenceHost, ModuleSpecifierResolutionHost {
+    export interface Program extends ScriptReferenceHost {
         getCurrentDirectory(): string;
         /**
          * Get a list of root file names that were passed to a 'createProgram'
@@ -3289,6 +3288,14 @@ namespace ts {
         /*@internal*/ getProgramBuildInfo?(): ProgramBuildInfo | undefined;
         /*@internal*/ emitBuildInfo(writeFile?: WriteFileCallback, cancellationToken?: CancellationToken): EmitResult;
         /*@internal*/ getProbableSymlinks(): ReadonlyMap<string>;
+        /**
+         * This implementation handles file exists to be true if file is source of project reference redirect when program is created using useSourceOfProjectReferenceRedirect
+         */
+        /*@internal*/ fileExists(fileName: string): boolean;
+    }
+
+    /*@internal*/
+    export interface Program extends TypeCheckerHost, ModuleSpecifierResolutionHost {
     }
 
     /* @internal */
@@ -3782,7 +3789,7 @@ namespace ts {
         writeParameter(text: string): void;
         writeProperty(text: string): void;
         writeSymbol(text: string, symbol: Symbol): void;
-        writeLine(): void;
+        writeLine(force?: boolean): void;
         increaseIndent(): void;
         decreaseIndent(): void;
         clear(): void;
@@ -4809,8 +4816,8 @@ namespace ts {
     // Thus, if Foo has a 'string' constraint on its type parameter, T will satisfy it. Substitution
     // types disappear upon instantiation (just like type parameters).
     export interface SubstitutionType extends InstantiableType {
-        typeVariable: TypeVariable;  // Target type variable
-        substitute: Type;            // Type to substitute for type parameter
+        baseType: Type;     // Target type
+        substitute: Type;   // Type to substitute for type parameter
     }
 
     /* @internal */
@@ -4890,7 +4897,20 @@ namespace ts {
     }
 
     /* @internal */
-    export type TypeMapper = (t: TypeParameter) => Type;
+    export const enum TypeMapKind {
+        Simple,
+        Array,
+        Function,
+        Composite,
+        Merged,
+    }
+
+    /* @internal */
+    export type TypeMapper =
+        | { kind: TypeMapKind.Simple, source: Type, target: Type }
+        | { kind: TypeMapKind.Array, sources: readonly Type[], targets: readonly Type[] | undefined }
+        | { kind: TypeMapKind.Function, func: (t: Type) => Type }
+        | { kind: TypeMapKind.Composite | TypeMapKind.Merged, mapper1: TypeMapper, mapper2: TypeMapper };
 
     export const enum InferencePriority {
         NakedTypeVariable            = 1 << 0,  // Naked type variable in union or intersection type
@@ -5637,7 +5657,7 @@ namespace ts {
     export interface ResolvedModuleWithFailedLookupLocations {
         readonly resolvedModule: ResolvedModuleFull | undefined;
         /* @internal */
-        readonly failedLookupLocations: readonly string[];
+        readonly failedLookupLocations: string[];
     }
 
     export interface ResolvedTypeReferenceDirective {
@@ -5652,7 +5672,7 @@ namespace ts {
 
     export interface ResolvedTypeReferenceDirectiveWithFailedLookupLocations {
         readonly resolvedTypeReferenceDirective: ResolvedTypeReferenceDirective | undefined;
-        readonly failedLookupLocations: readonly string[];
+        readonly failedLookupLocations: string[];
     }
 
     /* @internal */
@@ -5689,7 +5709,6 @@ namespace ts {
         /* @internal */ hasChangedAutomaticTypeDirectiveNames?: boolean;
         createHash?(data: string): string;
         getParsedCommandLine?(fileName: string): ParsedCommandLine | undefined;
-        /* @internal */ setResolvedProjectReferenceCallbacks?(callbacks: ResolvedProjectReferenceCallbacks): void;
         /* @internal */ useSourceOfProjectReferenceRedirect?(): boolean;
 
         // TODO: later handle this in better way in builder host instead once the api for tsbuild finalizes and doesn't use compilerHost as base
@@ -5847,6 +5866,7 @@ namespace ts {
         NoAsciiEscaping = 1 << 24,              // When synthesizing nodes that lack an original node or textSourceNode, we want to write the text on the node with ASCII escaping substitutions.
         /*@internal*/ TypeScriptClassWrapper = 1 << 25, // The node is an IIFE class wrapper created by the ts transform.
         /*@internal*/ NeverApplyImportHelper = 1 << 26, // Indicates the node should never be wrapped with an import star helper (because, for example, it imports tslib itself)
+        /*@internal*/ IgnoreSourceNewlines = 1 << 27,   // Overrides `printerOptions.preserveSourceNewlines` to print this node (and all descendants) with default whitespace.
     }
 
     export interface EmitHelper {
@@ -6311,6 +6331,7 @@ namespace ts {
         /*@internal*/ writeBundleFileInfo?: boolean;
         /*@internal*/ recordInternalSection?: boolean;
         /*@internal*/ stripInternal?: boolean;
+        /*@internal*/ preserveSourceNewlines?: boolean;
         /*@internal*/ relativeToBuildInfo?: (path: string) => string;
     }
 
@@ -6410,14 +6431,19 @@ namespace ts {
         getCurrentDirectory?(): string;
     }
 
-    export interface ModuleSpecifierResolutionHost extends GetEffectiveTypeRootsHost {
+    /*@internal*/
+    export interface ModuleSpecifierResolutionHost {
         useCaseSensitiveFileNames?(): boolean;
-        fileExists?(path: string): boolean;
+        fileExists(path: string): boolean;
+        getCurrentDirectory(): string;
         readFile?(path: string): string | undefined;
-        /* @internal */
         getProbableSymlinks?(files: readonly SourceFile[]): ReadonlyMap<string>;
-        /* @internal */
         getGlobalTypingsCacheLocation?(): string | undefined;
+
+        getSourceFiles(): readonly SourceFile[];
+        readonly redirectTargetsMap: RedirectTargetsMap;
+        getProjectReferenceRedirect(fileName: string): string | undefined;
+        isSourceOfProjectReferenceRedirect(fileName: string): boolean;
     }
 
     // Note: this used to be deprecated in our public API, but is still used internally
@@ -6431,7 +6457,7 @@ namespace ts {
         reportPrivateInBaseOfClassExpression?(propertyName: string): void;
         reportInaccessibleUniqueSymbolError?(): void;
         reportLikelyUnsafeImportRequiredError?(specifier: string): void;
-        moduleResolverHost?: ModuleSpecifierResolutionHost & { getSourceFiles(): readonly SourceFile[], getCommonSourceDirectory(): string };
+        moduleResolverHost?: ModuleSpecifierResolutionHost & { getCommonSourceDirectory(): string };
         trackReferencedAmbientModule?(decl: ModuleDeclaration, symbol: Symbol): void;
         trackExternalModuleSymbolOfImportTypeNode?(symbol: Symbol): void;
     }
