@@ -1906,7 +1906,7 @@ namespace ts {
                 }
 
                 for (const statement of statements) {
-                    const isExposableStatement = !(isImportDeclaration(statement) || isExpressionStatement(statement));
+                    const isExposableStatement = !(isImportDeclaration(statement) || isExportAssignment(statement) || isExpressionStatement(statement));
                     const isAlreadyExposed = statement.modifiers?.some(modifier => modifier.kind === SyntaxKind.ExportKeyword);
 
                     if (isExposableStatement && !isAlreadyExposed) {
@@ -1914,8 +1914,6 @@ namespace ts {
                         const exposureModifier = createNode(SyntaxKind.ExportKeyword) as Modifier;
                         modifiers.unshift(exposureModifier);
                         statement.modifiers = createNodeArray(modifiers);
-
-                        // Add export flag
                         statement.modifierFlagsCache |= ModifierFlags.Export;
 
                         exposeAllDeclarationsForTestPurposes(statement);
