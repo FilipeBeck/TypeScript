@@ -1906,17 +1906,19 @@ namespace ts {
                 }
 
                 for (const statement of statements) {
-                    const isExposableStatement = !(isImportDeclaration(statement) || isExportAssignment(statement) || isExpressionStatement(statement));
-                    const isAlreadyExposed = statement.modifiers?.some(modifier => modifier.kind === SyntaxKind.ExportKeyword);
+                    const isExposableStatement = !(isImportDeclaration(statement) || isExpressionStatement(statement));
+                    const isAlreadyExposed = isExportAssignment(statement) || statement.modifiers?.some(modifier => modifier.kind === SyntaxKind.ExportKeyword);
 
-                    if (isExposableStatement && !isAlreadyExposed) {
-                        const modifiers = Array.from(statement.modifiers ?? []);
-                        const exposureModifier = createNode(SyntaxKind.ExportKeyword) as Modifier;
-                        modifiers.unshift(exposureModifier);
-                        statement.modifiers = createNodeArray(modifiers);
-                        statement.modifierFlagsCache |= ModifierFlags.Export;
-
+                    if (isExposableStatement) {
                         exposeAllDeclarationsForTestPurposes(statement);
+
+                        if (!isAlreadyExposed) {
+                            const modifiers = Array.from(statement.modifiers ?? []);
+                            const exposureModifier = createNode(SyntaxKind.ExportKeyword) as Modifier;
+                            modifiers.unshift(exposureModifier);
+                            statement.modifiers = createNodeArray(modifiers);
+                            statement.modifierFlagsCache |= ModifierFlags.Export;
+                        }
                     }
                 }
             }
