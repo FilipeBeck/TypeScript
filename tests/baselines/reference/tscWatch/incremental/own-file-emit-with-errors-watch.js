@@ -1,4 +1,4 @@
-/a/lib/tsc.js -w
+Input::
 //// [/a/lib/lib.d.ts]
 /// <reference no-default-lib="true"/>
 interface Boolean {}
@@ -21,66 +21,14 @@ const x = 10;
 //// [/users/username/projects/project/file2.ts]
 const y: string = 20;
 
-//// [/users/username/projects/project/file1.js]
-var x = 10;
 
-
-//// [/users/username/projects/project/file2.js]
-var y = 20;
-
-
-//// [/users/username/projects/project/tsconfig.tsbuildinfo]
-{
-  "program": {
-    "fileInfos": {
-      "../../../../a/lib/lib.d.ts": {
-        "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
-        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }"
-      },
-      "./file1.ts": {
-        "version": "5029505981-const x = 10;",
-        "signature": "-4001438729-declare const x = 10;\n"
-      },
-      "./file2.ts": {
-        "version": "2414573776-const y: string = 20;",
-        "signature": "509180395-declare const y: string;\n"
-      }
-    },
-    "options": {
-      "incremental": true,
-      "watch": true,
-      "configFilePath": "./tsconfig.json"
-    },
-    "referencedMap": {},
-    "exportedModulesMap": {},
-    "semanticDiagnosticsPerFile": [
-      "../../../../a/lib/lib.d.ts",
-      "./file1.ts",
-      [
-        "./file2.ts",
-        [
-          {
-            "file": "./file2.ts",
-            "start": 6,
-            "length": 1,
-            "code": 2322,
-            "category": 1,
-            "messageText": "Type '20' is not assignable to type 'string'."
-          }
-        ]
-      ]
-    ]
-  },
-  "version": "FakeTSVersion"
-}
-
-
+/a/lib/tsc.js -w
 Output::
 >> Screen clear
 [[90m12:00:23 AM[0m] Starting compilation in watch mode...
 
 
-[96mfile2.ts[0m:[93m1[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '20' is not assignable to type 'string'.
+[96mfile2.ts[0m:[93m1[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType 'number' is not assignable to type 'string'.
 
 [7m1[0m const y: string = 20;
 [7m [0m [91m      ~[0m
@@ -122,31 +70,32 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
-Change::
-
-//// [/users/username/projects/project/file1.ts]
-const z = 10;
-
 //// [/users/username/projects/project/file1.js]
-var z = 10;
+var x = 10;
 
 
-//// [/users/username/projects/project/file2.js] file written with same contents
+//// [/users/username/projects/project/file2.js]
+var y = 20;
+
+
 //// [/users/username/projects/project/tsconfig.tsbuildinfo]
 {
   "program": {
     "fileInfos": {
       "../../../../a/lib/lib.d.ts": {
         "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
-        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }"
+        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "affectsGlobalScope": true
       },
       "./file1.ts": {
-        "version": "3317474623-const z = 10;",
-        "signature": "-368931399-declare const z = 10;\n"
+        "version": "5029505981-const x = 10;",
+        "signature": "-4001438729-declare const x = 10;\n",
+        "affectsGlobalScope": true
       },
       "./file2.ts": {
         "version": "2414573776-const y: string = 20;",
-        "signature": "509180395-declare const y: string;\n"
+        "signature": "509180395-declare const y: string;\n",
+        "affectsGlobalScope": true
       }
     },
     "options": {
@@ -168,7 +117,7 @@ var z = 10;
             "length": 1,
             "code": 2322,
             "category": 1,
-            "messageText": "Type '20' is not assignable to type 'string'."
+            "messageText": "Type 'number' is not assignable to type 'string'."
           }
         ]
       ]
@@ -178,12 +127,19 @@ var z = 10;
 }
 
 
+Change::
+
+Input::
+//// [/users/username/projects/project/file1.ts]
+const z = 10;
+
+
 Output::
 >> Screen clear
 [[90m12:00:34 AM[0m] Starting compilation in watch mode...
 
 
-[96mfile2.ts[0m:[93m1[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '20' is not assignable to type 'string'.
+[96mfile2.ts[0m:[93m1[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType 'number' is not assignable to type 'string'.
 
 [7m1[0m const y: string = 20;
 [7m [0m [91m      ~[0m
@@ -224,3 +180,57 @@ FsWatchesRecursive::
   {"directoryName":"/users/username/projects/project","fallbackPollingInterval":500,"fallbackOptions":{"watchFile":"PriorityPollingInterval"}}
 
 exitCode:: ExitStatus.undefined
+
+//// [/users/username/projects/project/file1.js]
+var z = 10;
+
+
+//// [/users/username/projects/project/file2.js] file written with same contents
+//// [/users/username/projects/project/tsconfig.tsbuildinfo]
+{
+  "program": {
+    "fileInfos": {
+      "../../../../a/lib/lib.d.ts": {
+        "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "affectsGlobalScope": true
+      },
+      "./file1.ts": {
+        "version": "3317474623-const z = 10;",
+        "signature": "-368931399-declare const z = 10;\n",
+        "affectsGlobalScope": true
+      },
+      "./file2.ts": {
+        "version": "2414573776-const y: string = 20;",
+        "signature": "509180395-declare const y: string;\n",
+        "affectsGlobalScope": true
+      }
+    },
+    "options": {
+      "incremental": true,
+      "watch": true,
+      "configFilePath": "./tsconfig.json"
+    },
+    "referencedMap": {},
+    "exportedModulesMap": {},
+    "semanticDiagnosticsPerFile": [
+      "../../../../a/lib/lib.d.ts",
+      "./file1.ts",
+      [
+        "./file2.ts",
+        [
+          {
+            "file": "./file2.ts",
+            "start": 6,
+            "length": 1,
+            "code": 2322,
+            "category": 1,
+            "messageText": "Type 'number' is not assignable to type 'string'."
+          }
+        ]
+      ]
+    ]
+  },
+  "version": "FakeTSVersion"
+}
+

@@ -100,7 +100,7 @@ namespace ts {
             if (option.name === "lib") {
                 description = getDiagnosticText(option.description);
                 const element = (<CommandLineOptionOfListType>option).element;
-                const typeMap = <Map<number | string>>element.type;
+                const typeMap = <ESMap<string, number | string>>element.type;
                 optionsDescriptionMap.set(description, arrayFrom(typeMap.keys()).map(key => `'${key}'`));
             }
             else {
@@ -566,45 +566,43 @@ namespace ts {
     }
 
     function createWatchOfConfigFile(
-        sys: System,
+        system: System,
         cb: ExecuteCommandLineCallbacks,
         reportDiagnostic: DiagnosticReporter,
         configParseResult: ParsedCommandLine,
         optionsToExtend: CompilerOptions,
         watchOptionsToExtend: WatchOptions | undefined,
     ) {
-        const watchCompilerHost = createWatchCompilerHostOfConfigFile(
-            configParseResult.options.configFilePath!,
+        const watchCompilerHost = createWatchCompilerHostOfConfigFile({
+            configFileName: configParseResult.options.configFilePath!,
             optionsToExtend,
             watchOptionsToExtend,
-            sys,
-            /*createProgram*/ undefined,
+            system,
             reportDiagnostic,
-            createWatchStatusReporter(sys, configParseResult.options)
-        ); // TODO: GH#18217
-        updateWatchCompilationHost(sys, cb, watchCompilerHost);
+            reportWatchStatus: createWatchStatusReporter(system, configParseResult.options)
+        });
+        updateWatchCompilationHost(system, cb, watchCompilerHost);
         watchCompilerHost.configFileParsingResult = configParseResult;
         return createWatchProgram(watchCompilerHost);
     }
 
     function createWatchOfFilesAndCompilerOptions(
-        sys: System,
+        system: System,
         cb: ExecuteCommandLineCallbacks,
         reportDiagnostic: DiagnosticReporter,
         rootFiles: string[],
         options: CompilerOptions,
         watchOptions: WatchOptions | undefined,
     ) {
-        const watchCompilerHost = createWatchCompilerHostOfFilesAndCompilerOptions(
+        const watchCompilerHost = createWatchCompilerHostOfFilesAndCompilerOptions({
             rootFiles,
             options,
             watchOptions,
-            sys,
-            /*createProgram*/ undefined,
+            system,
             reportDiagnostic,
-            createWatchStatusReporter(sys, options)
-        );
-        updateWatchCompilationHost(sys, cb, watchCompilerHost);
+            reportWatchStatus: createWatchStatusReporter(system, options)
+        });
+        updateWatchCompilationHost(system, cb, watchCompilerHost);
         return createWatchProgram(watchCompilerHost);
     }
 

@@ -1,4 +1,4 @@
-/a/lib/tsc.js -w
+Input::
 //// [/a/lib/lib.d.ts]
 /// <reference no-default-lib="true"/>
 interface Boolean {}
@@ -42,111 +42,8 @@ export { C } from "./c";
 //// [/users/username/projects/project/tsconfig.json]
 {"compilerOptions":{"incremental":true,"target":"es5","module":"commonjs","declaration":true,"emitDeclarationOnly":true}}
 
-//// [/users/username/projects/project/c.d.ts]
-import { A } from "./a";
-export interface C {
-    a: A;
-}
 
-
-//// [/users/username/projects/project/b.d.ts]
-import { C } from "./c";
-export interface B {
-    b: C;
-}
-
-
-//// [/users/username/projects/project/a.d.ts]
-import { B } from "./b";
-export interface A {
-    b: B;
-}
-
-
-//// [/users/username/projects/project/index.d.ts]
-export { A } from "./a";
-export { B } from "./b";
-export { C } from "./c";
-
-
-//// [/users/username/projects/project/tsconfig.tsbuildinfo]
-{
-  "program": {
-    "fileInfos": {
-      "../../../../a/lib/lib.d.ts": {
-        "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
-        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }"
-      },
-      "./c.ts": {
-        "version": "-3358372745-import { A } from \"./a\";\nexport interface C {\n    a: A;\n}\n",
-        "signature": "-3358372745-import { A } from \"./a\";\nexport interface C {\n    a: A;\n}\n"
-      },
-      "./b.ts": {
-        "version": "2102342013-import { C } from \"./c\";\nexport interface B {\n    b: C;\n}\n",
-        "signature": "2102342013-import { C } from \"./c\";\nexport interface B {\n    b: C;\n}\n"
-      },
-      "./a.ts": {
-        "version": "-9690779495-import { B } from \"./b\";\nexport interface A {\n    b: B;\n}\n",
-        "signature": "-9690779495-import { B } from \"./b\";\nexport interface A {\n    b: B;\n}\n"
-      },
-      "./index.ts": {
-        "version": "1286756397-export { A } from \"./a\";\nexport { B } from \"./b\";\nexport { C } from \"./c\";\n",
-        "signature": "1286756397-export { A } from \"./a\";\nexport { B } from \"./b\";\nexport { C } from \"./c\";\n"
-      }
-    },
-    "options": {
-      "incremental": true,
-      "target": 1,
-      "module": 1,
-      "declaration": true,
-      "emitDeclarationOnly": true,
-      "watch": true,
-      "configFilePath": "./tsconfig.json"
-    },
-    "referencedMap": {
-      "./a.ts": [
-        "./b.ts"
-      ],
-      "./b.ts": [
-        "./c.ts"
-      ],
-      "./c.ts": [
-        "./a.ts"
-      ],
-      "./index.ts": [
-        "./a.ts",
-        "./b.ts",
-        "./c.ts"
-      ]
-    },
-    "exportedModulesMap": {
-      "./a.ts": [
-        "./b.ts"
-      ],
-      "./b.ts": [
-        "./c.ts"
-      ],
-      "./c.ts": [
-        "./a.ts"
-      ],
-      "./index.ts": [
-        "./a.ts",
-        "./b.ts",
-        "./c.ts"
-      ]
-    },
-    "semanticDiagnosticsPerFile": [
-      "../../../../a/lib/lib.d.ts",
-      "./a.ts",
-      "./b.ts",
-      "./c.ts",
-      "./index.ts"
-    ]
-  },
-  "version": "FakeTSVersion"
-}
-
-
+/a/lib/tsc.js -w
 Output::
 >> Screen clear
 [[90m12:00:27 AM[0m] Starting compilation in watch mode...
@@ -196,50 +93,61 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
-Change::
-
-//// [/users/username/projects/project/a.ts]
-import { B } from "./b";
-export interface A {
-    b: B;
-    foo: any;
+//// [/users/username/projects/project/c.d.ts]
+import { A } from "./a";
+export interface C {
+    a: A;
 }
 
 
-//// [/users/username/projects/project/c.d.ts] file written with same contents
-//// [/users/username/projects/project/b.d.ts] file written with same contents
+//// [/users/username/projects/project/b.d.ts]
+import { C } from "./c";
+export interface B {
+    b: C;
+}
+
+
 //// [/users/username/projects/project/a.d.ts]
 import { B } from "./b";
 export interface A {
     b: B;
-    foo: any;
 }
 
 
-//// [/users/username/projects/project/index.d.ts] file written with same contents
+//// [/users/username/projects/project/index.d.ts]
+export { A } from "./a";
+export { B } from "./b";
+export { C } from "./c";
+
+
 //// [/users/username/projects/project/tsconfig.tsbuildinfo]
 {
   "program": {
     "fileInfos": {
       "../../../../a/lib/lib.d.ts": {
         "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
-        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }"
+        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "affectsGlobalScope": true
       },
       "./c.ts": {
         "version": "-3358372745-import { A } from \"./a\";\nexport interface C {\n    a: A;\n}\n",
-        "signature": "-3358372745-import { A } from \"./a\";\nexport interface C {\n    a: A;\n}\n"
+        "signature": "-3358372745-import { A } from \"./a\";\nexport interface C {\n    a: A;\n}\n",
+        "affectsGlobalScope": false
       },
       "./b.ts": {
         "version": "2102342013-import { C } from \"./c\";\nexport interface B {\n    b: C;\n}\n",
-        "signature": "2102342013-import { C } from \"./c\";\nexport interface B {\n    b: C;\n}\n"
+        "signature": "2102342013-import { C } from \"./c\";\nexport interface B {\n    b: C;\n}\n",
+        "affectsGlobalScope": false
       },
       "./a.ts": {
-        "version": "-7623824316-import { B } from \"./b\";\nexport interface A {\n    b: B;\n    foo: any;\n}\n",
-        "signature": "-7623824316-import { B } from \"./b\";\nexport interface A {\n    b: B;\n    foo: any;\n}\n"
+        "version": "-9690779495-import { B } from \"./b\";\nexport interface A {\n    b: B;\n}\n",
+        "signature": "-9690779495-import { B } from \"./b\";\nexport interface A {\n    b: B;\n}\n",
+        "affectsGlobalScope": false
       },
       "./index.ts": {
         "version": "1286756397-export { A } from \"./a\";\nexport { B } from \"./b\";\nexport { C } from \"./c\";\n",
-        "signature": "1286756397-export { A } from \"./a\";\nexport { B } from \"./b\";\nexport { C } from \"./c\";\n"
+        "signature": "1286756397-export { A } from \"./a\";\nexport { B } from \"./b\";\nexport { C } from \"./c\";\n",
+        "affectsGlobalScope": false
       }
     },
     "options": {
@@ -295,6 +203,18 @@ export interface A {
 }
 
 
+Change::
+
+Input::
+//// [/users/username/projects/project/a.ts]
+import { B } from "./b";
+export interface A {
+    b: B;
+    foo: any;
+}
+
+
+
 Output::
 >> Screen clear
 [[90m12:00:42 AM[0m] Starting compilation in watch mode...
@@ -342,3 +262,97 @@ FsWatchesRecursive::
   {"directoryName":"/users/username/projects/project","fallbackPollingInterval":500,"fallbackOptions":{"watchFile":"PriorityPollingInterval"}}
 
 exitCode:: ExitStatus.undefined
+
+//// [/users/username/projects/project/c.d.ts] file written with same contents
+//// [/users/username/projects/project/b.d.ts] file written with same contents
+//// [/users/username/projects/project/a.d.ts]
+import { B } from "./b";
+export interface A {
+    b: B;
+    foo: any;
+}
+
+
+//// [/users/username/projects/project/index.d.ts] file written with same contents
+//// [/users/username/projects/project/tsconfig.tsbuildinfo]
+{
+  "program": {
+    "fileInfos": {
+      "../../../../a/lib/lib.d.ts": {
+        "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "affectsGlobalScope": true
+      },
+      "./c.ts": {
+        "version": "-3358372745-import { A } from \"./a\";\nexport interface C {\n    a: A;\n}\n",
+        "signature": "-3358372745-import { A } from \"./a\";\nexport interface C {\n    a: A;\n}\n",
+        "affectsGlobalScope": false
+      },
+      "./b.ts": {
+        "version": "2102342013-import { C } from \"./c\";\nexport interface B {\n    b: C;\n}\n",
+        "signature": "2102342013-import { C } from \"./c\";\nexport interface B {\n    b: C;\n}\n",
+        "affectsGlobalScope": false
+      },
+      "./a.ts": {
+        "version": "-7623824316-import { B } from \"./b\";\nexport interface A {\n    b: B;\n    foo: any;\n}\n",
+        "signature": "-7623824316-import { B } from \"./b\";\nexport interface A {\n    b: B;\n    foo: any;\n}\n",
+        "affectsGlobalScope": false
+      },
+      "./index.ts": {
+        "version": "1286756397-export { A } from \"./a\";\nexport { B } from \"./b\";\nexport { C } from \"./c\";\n",
+        "signature": "1286756397-export { A } from \"./a\";\nexport { B } from \"./b\";\nexport { C } from \"./c\";\n",
+        "affectsGlobalScope": false
+      }
+    },
+    "options": {
+      "incremental": true,
+      "target": 1,
+      "module": 1,
+      "declaration": true,
+      "emitDeclarationOnly": true,
+      "watch": true,
+      "configFilePath": "./tsconfig.json"
+    },
+    "referencedMap": {
+      "./a.ts": [
+        "./b.ts"
+      ],
+      "./b.ts": [
+        "./c.ts"
+      ],
+      "./c.ts": [
+        "./a.ts"
+      ],
+      "./index.ts": [
+        "./a.ts",
+        "./b.ts",
+        "./c.ts"
+      ]
+    },
+    "exportedModulesMap": {
+      "./a.ts": [
+        "./b.ts"
+      ],
+      "./b.ts": [
+        "./c.ts"
+      ],
+      "./c.ts": [
+        "./a.ts"
+      ],
+      "./index.ts": [
+        "./a.ts",
+        "./b.ts",
+        "./c.ts"
+      ]
+    },
+    "semanticDiagnosticsPerFile": [
+      "../../../../a/lib/lib.d.ts",
+      "./a.ts",
+      "./b.ts",
+      "./c.ts",
+      "./index.ts"
+    ]
+  },
+  "version": "FakeTSVersion"
+}
+

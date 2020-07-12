@@ -293,6 +293,9 @@ namespace ts {
         // symbol has no doc comment, then the empty array will be returned.
         documentationComment?: SymbolDisplayPart[];
 
+        contextualGetAccessorDocumentationComment?: SymbolDisplayPart[];
+        contextualSetAccessorDocumentationComment?: SymbolDisplayPart[];
+
         // Undefined is used to indicate the value has not been computed. If, after computing, the
         // symbol has no JSDoc tags, then the empty array will be returned.
         tags?: JSDocTagInfo[];
@@ -325,9 +328,35 @@ namespace ts {
         getDocumentationComment(checker: TypeChecker | undefined): SymbolDisplayPart[] {
             if (!this.documentationComment) {
                 this.documentationComment = emptyArray; // Set temporarily to avoid an infinite loop finding inherited docs
-                this.documentationComment = getDocumentationComment(this.declarations, checker);
+
+                if (!this.declarations && (this as Symbol as TransientSymbol).target && ((this as Symbol as TransientSymbol).target as TransientSymbol).tupleLabelDeclaration) {
+                    const labelDecl = ((this as Symbol as TransientSymbol).target as TransientSymbol).tupleLabelDeclaration!;
+                    this.documentationComment = getDocumentationComment([labelDecl], checker);
+                }
+                else {
+                    this.documentationComment = getDocumentationComment(this.declarations, checker);
+                }
             }
             return this.documentationComment;
+        }
+
+        getContextualDocumentationComment(context: Node | undefined, checker: TypeChecker | undefined): SymbolDisplayPart[] {
+            switch (context?.kind) {
+                case SyntaxKind.GetAccessor:
+                    if (!this.contextualGetAccessorDocumentationComment) {
+                        this.contextualGetAccessorDocumentationComment = emptyArray;
+                        this.contextualGetAccessorDocumentationComment = getDocumentationComment(filter(this.declarations, isGetAccessor), checker);
+                    }
+                    return this.contextualGetAccessorDocumentationComment;
+                case SyntaxKind.SetAccessor:
+                    if (!this.contextualSetAccessorDocumentationComment) {
+                        this.contextualSetAccessorDocumentationComment = emptyArray;
+                        this.contextualSetAccessorDocumentationComment = getDocumentationComment(filter(this.declarations, isSetAccessor), checker);
+                    }
+                    return this.contextualSetAccessorDocumentationComment;
+                default:
+                    return this.getDocumentationComment(checker);
+            }
         }
 
         getJsDocTags(): JSDocTagInfo[] {
@@ -606,13 +635,13 @@ namespace ts {
         public scriptKind!: ScriptKind;
         public languageVersion!: ScriptTarget;
         public languageVariant!: LanguageVariant;
-        public identifiers!: Map<string>;
+        public identifiers!: ESMap<string, string>;
         public nameTable: UnderscoreEscapedMap<number> | undefined;
-        public resolvedModules: Map<ResolvedModuleFull> | undefined;
-        public resolvedTypeReferenceDirectiveNames!: Map<ResolvedTypeReferenceDirective>;
+        public resolvedModules: ESMap<string, ResolvedModuleFull> | undefined;
+        public resolvedTypeReferenceDirectiveNames!: ESMap<string, ResolvedTypeReferenceDirective>;
         public imports!: readonly StringLiteralLike[];
         public moduleAugmentations!: StringLiteral[];
-        private namedDeclarations: Map<Declaration[]> | undefined;
+        private namedDeclarations: ESMap<string, Declaration[]> | undefined;
         public ambientModuleNames!: string[];
         public checkJsDirective: CheckJsDirective | undefined;
         public errorExpectations: TextRange[] | undefined;
@@ -658,7 +687,7 @@ namespace ts {
             return fullText[lastCharPos] === "\n" && fullText[lastCharPos - 1] === "\r" ? lastCharPos - 1 : lastCharPos;
         }
 
-        public getNamedDeclarations(): Map<Declaration[]> {
+        public getNamedDeclarations(): ESMap<string, Declaration[]> {
             if (!this.namedDeclarations) {
                 this.namedDeclarations = this.computeNamedDeclarations();
             }
@@ -666,7 +695,7 @@ namespace ts {
             return this.namedDeclarations;
         }
 
-        private computeNamedDeclarations(): Map<Declaration[]> {
+        private computeNamedDeclarations(): ESMap<string, Declaration[]> {
             const result = createMultiMap<Declaration>();
 
             this.forEachChild(visit);
@@ -742,7 +771,7 @@ namespace ts {
 
                     case SyntaxKind.Parameter:
                         // Only consider parameter properties
-                        if (!hasModifier(node, ModifierFlags.ParameterPropertyModifier)) {
+                        if (!hasSyntacticModifier(node, ModifierFlags.ParameterPropertyModifier)) {
                             break;
                         }
                         // falls through
@@ -909,14 +938,14 @@ namespace ts {
     // at each language service public entry point, since we don't know when
     // the set of scripts handled by the host changes.
     class HostCache {
-        private fileNameToEntry: Map<CachedHostFileInformation>;
+        private fileNameToEntry: ESMap<Path, CachedHostFileInformation>;
         private _compilationSettings: CompilerOptions;
         private currentDirectory: string;
 
         constructor(private host: LanguageServiceHost, getCanonicalFileName: GetCanonicalFileName) {
             // script id => script index
             this.currentDirectory = host.getCurrentDirectory();
-            this.fileNameToEntry = createMap<CachedHostFileInformation>();
+            this.fileNameToEntry = new Map();
 
             // Initialize the list with the root file names
             const rootFileNames = host.getScriptFileNames();
@@ -1143,6 +1172,26 @@ namespace ts {
         }
     }
 
+    const invalidOperationsOnSyntaxOnly: readonly (keyof LanguageService)[] = [
+        "getSyntacticDiagnostics",
+        "getSemanticDiagnostics",
+        "getSuggestionDiagnostics",
+        "getCompilerOptionsDiagnostics",
+        "getSemanticClassifications",
+        "getEncodedSemanticClassifications",
+        "getCodeFixesAtPosition",
+        "getCombinedCodeFix",
+        "applyCodeActionCommand",
+        "organizeImports",
+        "getEditsForFileRename",
+        "getEmitOutput",
+        "getApplicableRefactors",
+        "getEditsForRefactor",
+        "prepareCallHierarchy",
+        "provideCallHierarchyIncomingCalls",
+        "provideCallHierarchyOutgoingCalls",
+    ];
+
     export function createLanguageService(
         host: LanguageServiceHost,
         documentRegistry: DocumentRegistry = createDocumentRegistry(host.useCaseSensitiveFileNames && host.useCaseSensitiveFileNames(), host.getCurrentDirectory()),
@@ -1196,13 +1245,11 @@ namespace ts {
         }
 
         function synchronizeHostData(): void {
-            Debug.assert(!syntaxOnly);
-
             // perform fast check if host supports it
             if (host.getProjectVersion) {
                 const hostProjectVersion = host.getProjectVersion();
                 if (hostProjectVersion) {
-                    if (lastProjectVersion === hostProjectVersion && !host.hasChangedAutomaticTypeDirectiveNames) {
+                    if (lastProjectVersion === hostProjectVersion && !host.hasChangedAutomaticTypeDirectiveNames?.()) {
                         return;
                     }
 
@@ -1220,12 +1267,12 @@ namespace ts {
             // Get a fresh cache of the host information
             let hostCache: HostCache | undefined = new HostCache(host, getCanonicalFileName);
             const rootFileNames = hostCache.getRootFileNames();
-
             const hasInvalidatedResolution: HasInvalidatedResolution = host.hasInvalidatedResolution || returnFalse;
+            const hasChangedAutomaticTypeDirectiveNames = maybeBind(host, host.hasChangedAutomaticTypeDirectiveNames);
             const projectReferences = hostCache.getProjectReferences();
 
             // If the program is already up-to-date, we can reuse it
-            if (isProgramUptoDate(program, rootFileNames, hostCache.compilationSettings(), (_path, fileName) => host.getScriptVersion(fileName), fileExists, hasInvalidatedResolution, !!host.hasChangedAutomaticTypeDirectiveNames, projectReferences)) {
+            if (isProgramUptoDate(program, rootFileNames, hostCache.compilationSettings(), (_path, fileName) => host.getScriptVersion(fileName), fileExists, hasInvalidatedResolution, hasChangedAutomaticTypeDirectiveNames, projectReferences)) {
                 return;
             }
 
@@ -1263,7 +1310,7 @@ namespace ts {
                 },
                 onReleaseOldSourceFile,
                 hasInvalidatedResolution,
-                hasChangedAutomaticTypeDirectiveNames: host.hasChangedAutomaticTypeDirectiveNames
+                hasChangedAutomaticTypeDirectiveNames
             };
             if (host.trace) {
                 compilerHost.trace = message => host.trace!(message);
@@ -1390,14 +1437,13 @@ namespace ts {
 
         // TODO: GH#18217 frequently asserted as defined
         function getProgram(): Program | undefined {
-            if (syntaxOnly) {
-                Debug.assert(program === undefined);
-                return undefined;
-            }
-
             synchronizeHostData();
 
             return program;
+        }
+
+        function getAutoImportProvider(): Program | undefined {
+            return host.getPackageJsonAutoImportProvider?.();
         }
 
         function cleanupSemanticCache(): void {
@@ -1406,8 +1452,10 @@ namespace ts {
 
         function dispose(): void {
             if (program) {
+                // Use paths to ensure we are using correct key and paths as document registry could bre created with different current directory than host
+                const key = documentRegistry.getKeyForCompilationSettings(program.getCompilerOptions());
                 forEach(program.getSourceFiles(), f =>
-                    documentRegistry.releaseDocument(f.fileName, program.getCompilerOptions()));
+                    documentRegistry.releaseDocumentWithKey(f.resolvedPath, key));
                 program = undefined!; // TODO: GH#18217
             }
             host = undefined!;
@@ -1479,7 +1527,7 @@ namespace ts {
                 position,
                 { name, source },
                 host,
-                (formattingOptions && formatting.getFormatContext(formattingOptions))!, // TODO: GH#18217
+                (formattingOptions && formatting.getFormatContext(formattingOptions, host))!, // TODO: GH#18217
                 preferences,
                 cancellationToken,
             );
@@ -1817,16 +1865,16 @@ namespace ts {
 
         function getFormattingEditsForRange(fileName: string, start: number, end: number, options: FormatCodeOptions | FormatCodeSettings): TextChange[] {
             const sourceFile = syntaxTreeCache.getCurrentSourceFile(fileName);
-            return formatting.formatSelection(start, end, sourceFile, formatting.getFormatContext(toEditorSettings(options)));
+            return formatting.formatSelection(start, end, sourceFile, formatting.getFormatContext(toEditorSettings(options), host));
         }
 
         function getFormattingEditsForDocument(fileName: string, options: FormatCodeOptions | FormatCodeSettings): TextChange[] {
-            return formatting.formatDocument(syntaxTreeCache.getCurrentSourceFile(fileName), formatting.getFormatContext(toEditorSettings(options)));
+            return formatting.formatDocument(syntaxTreeCache.getCurrentSourceFile(fileName), formatting.getFormatContext(toEditorSettings(options), host));
         }
 
         function getFormattingEditsAfterKeystroke(fileName: string, position: number, key: string, options: FormatCodeOptions | FormatCodeSettings): TextChange[] {
             const sourceFile = syntaxTreeCache.getCurrentSourceFile(fileName);
-            const formatContext = formatting.getFormatContext(toEditorSettings(options));
+            const formatContext = formatting.getFormatContext(toEditorSettings(options), host);
 
             if (!isInComment(sourceFile, position)) {
                 switch (key) {
@@ -1848,7 +1896,7 @@ namespace ts {
             synchronizeHostData();
             const sourceFile = getValidSourceFile(fileName);
             const span = createTextSpanFromBounds(start, end);
-            const formatContext = formatting.getFormatContext(formatOptions);
+            const formatContext = formatting.getFormatContext(formatOptions, host);
 
             return flatMap(deduplicate<number>(errorCodes, equateValues, compareValues), errorCode => {
                 cancellationToken.throwIfCancellationRequested();
@@ -1860,7 +1908,7 @@ namespace ts {
             synchronizeHostData();
             Debug.assert(scope.type === "file");
             const sourceFile = getValidSourceFile(scope.fileName);
-            const formatContext = formatting.getFormatContext(formatOptions);
+            const formatContext = formatting.getFormatContext(formatOptions, host);
 
             return codefix.getAllFixes({ fixId, sourceFile, program, host, cancellationToken, formatContext, preferences });
         }
@@ -1869,13 +1917,13 @@ namespace ts {
             synchronizeHostData();
             Debug.assert(scope.type === "file");
             const sourceFile = getValidSourceFile(scope.fileName);
-            const formatContext = formatting.getFormatContext(formatOptions);
+            const formatContext = formatting.getFormatContext(formatOptions, host);
 
             return OrganizeImports.organizeImports(sourceFile, formatContext, host, program, preferences);
         }
 
         function getEditsForFileRename(oldFilePath: string, newFilePath: string, formatOptions: FormatCodeSettings, preferences: UserPreferences = emptyOptions): readonly FileTextChanges[] {
-            return ts.getEditsForFileRename(getProgram()!, oldFilePath, newFilePath, host, formatting.getFormatContext(formatOptions), preferences, sourceMapper);
+            return ts.getEditsForFileRename(getProgram()!, oldFilePath, newFilePath, host, formatting.getFormatContext(formatOptions, host), preferences, sourceMapper);
         }
 
         function applyCodeActionCommand(action: CodeActionCommand, formatSettings?: FormatCodeSettings): Promise<ApplyCodeActionCommandResult>;
@@ -2110,7 +2158,7 @@ namespace ts {
             return Rename.getRenameInfo(program, getValidSourceFile(fileName), position, options);
         }
 
-        function getRefactorContext(file: SourceFile, positionOrRange: number | TextRange, preferences: UserPreferences, formatOptions?: FormatCodeSettings): RefactorContext {
+        function getRefactorContext(file: SourceFile, positionOrRange: number | TextRange, preferences: UserPreferences, formatOptions?: FormatCodeSettings, triggerReason?: RefactorTriggerReason): RefactorContext {
             const [startPosition, endPosition] = typeof positionOrRange === "number" ? [positionOrRange, undefined] : [positionOrRange.pos, positionOrRange.end];
             return {
                 file,
@@ -2118,9 +2166,10 @@ namespace ts {
                 endPosition,
                 program: getProgram()!,
                 host,
-                formatContext: formatting.getFormatContext(formatOptions!), // TODO: GH#18217
+                formatContext: formatting.getFormatContext(formatOptions!, host), // TODO: GH#18217
                 cancellationToken,
                 preferences,
+                triggerReason,
             };
         }
 
@@ -2128,10 +2177,10 @@ namespace ts {
             return SmartSelectionRange.getSmartSelectionRange(position, syntaxTreeCache.getCurrentSourceFile(fileName));
         }
 
-        function getApplicableRefactors(fileName: string, positionOrRange: number | TextRange, preferences: UserPreferences = emptyOptions): ApplicableRefactorInfo[] {
+        function getApplicableRefactors(fileName: string, positionOrRange: number | TextRange, preferences: UserPreferences = emptyOptions, triggerReason: RefactorTriggerReason): ApplicableRefactorInfo[] {
             synchronizeHostData();
             const file = getValidSourceFile(fileName);
-            return refactor.getApplicableRefactors(getRefactorContext(file, positionOrRange, preferences));
+            return refactor.getApplicableRefactors(getRefactorContext(file, positionOrRange, preferences, emptyOptions, triggerReason));
         }
 
         function getEditsForRefactor(
@@ -2167,7 +2216,7 @@ namespace ts {
             return declaration ? CallHierarchy.getOutgoingCalls(program, declaration) : [];
         }
 
-        return {
+        const ls: LanguageService = {
             dispose,
             cleanupSemanticCache,
             getSyntacticDiagnostics,
@@ -2218,6 +2267,7 @@ namespace ts {
             getEmitOutput,
             getNonBoundSourceFile,
             getProgram,
+            getAutoImportProvider,
             getApplicableRefactors,
             getEditsForRefactor,
             toLineColumnOffset: sourceMapper.toLineColumnOffset,
@@ -2227,6 +2277,16 @@ namespace ts {
             provideCallHierarchyIncomingCalls,
             provideCallHierarchyOutgoingCalls
         };
+
+        if (syntaxOnly) {
+            invalidOperationsOnSyntaxOnly.forEach(key =>
+                ls[key] = () => {
+                    throw new Error(`LanguageService Operation: ${key} not allowed on syntaxServer`);
+                }
+            );
+        }
+
+        return ls;
     }
 
     /* @internal */

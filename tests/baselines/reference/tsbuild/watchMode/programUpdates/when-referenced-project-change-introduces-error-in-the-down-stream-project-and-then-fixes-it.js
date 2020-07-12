@@ -1,4 +1,4 @@
-/a/lib/tsc.js -b -w App
+Input::
 //// [/a/lib/lib.d.ts]
 /// <reference no-default-lib="true"/>
 interface Boolean {}
@@ -36,62 +36,8 @@ createSomeObject().message;
 //// [/user/username/projects/sample1/App/tsconfig.json]
 {"references":[{"path":"../Library"}]}
 
-//// [/user/username/projects/sample1/Library/library.js]
-"use strict";
-exports.__esModule = true;
-exports.createSomeObject = void 0;
-function createSomeObject() {
-    return {
-        message: "new Object"
-    };
-}
-exports.createSomeObject = createSomeObject;
 
-
-//// [/user/username/projects/sample1/Library/library.d.ts]
-interface SomeObject {
-    message: string;
-}
-export declare function createSomeObject(): SomeObject;
-export {};
-
-
-//// [/user/username/projects/sample1/Library/tsconfig.tsbuildinfo]
-{
-  "program": {
-    "fileInfos": {
-      "../../../../../a/lib/lib.d.ts": {
-        "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
-        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }"
-      },
-      "./library.ts": {
-        "version": "5256469508-\ninterface SomeObject\n{\n    message: string;\n}\n\nexport function createSomeObject(): SomeObject\n{\n    return {\n        message: \"new Object\"\n    };\n}",
-        "signature": "-18933614215-interface SomeObject {\n    message: string;\n}\nexport declare function createSomeObject(): SomeObject;\nexport {};\n"
-      }
-    },
-    "options": {
-      "composite": true,
-      "watch": true,
-      "configFilePath": "./tsconfig.json"
-    },
-    "referencedMap": {},
-    "exportedModulesMap": {},
-    "semanticDiagnosticsPerFile": [
-      "../../../../../a/lib/lib.d.ts",
-      "./library.ts"
-    ]
-  },
-  "version": "FakeTSVersion"
-}
-
-//// [/user/username/projects/sample1/App/app.js]
-"use strict";
-exports.__esModule = true;
-var library_1 = require("../Library/library");
-library_1.createSomeObject().message;
-
-
-
+/a/lib/tsc.js -b -w App
 Output::
 >> Screen clear
 [[90m12:00:29 AM[0m] Starting compilation in watch mode...
@@ -143,29 +89,13 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
-Change:: Introduce error
-
-//// [/user/username/projects/sample1/Library/library.ts]
-
-interface SomeObject
-{
-    message2: string;
-}
-
-export function createSomeObject(): SomeObject
-{
-    return {
-        message2: "new Object"
-    };
-}
-
 //// [/user/username/projects/sample1/Library/library.js]
 "use strict";
 exports.__esModule = true;
 exports.createSomeObject = void 0;
 function createSomeObject() {
     return {
-        message2: "new Object"
+        message: "new Object"
     };
 }
 exports.createSomeObject = createSomeObject;
@@ -173,7 +103,7 @@ exports.createSomeObject = createSomeObject;
 
 //// [/user/username/projects/sample1/Library/library.d.ts]
 interface SomeObject {
-    message2: string;
+    message: string;
 }
 export declare function createSomeObject(): SomeObject;
 export {};
@@ -185,11 +115,13 @@ export {};
     "fileInfos": {
       "../../../../../a/lib/lib.d.ts": {
         "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
-        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }"
+        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "affectsGlobalScope": true
       },
       "./library.ts": {
-        "version": "-9741349880-\ninterface SomeObject\n{\n    message2: string;\n}\n\nexport function createSomeObject(): SomeObject\n{\n    return {\n        message2: \"new Object\"\n    };\n}",
-        "signature": "1956297931-interface SomeObject {\n    message2: string;\n}\nexport declare function createSomeObject(): SomeObject;\nexport {};\n"
+        "version": "5256469508-\ninterface SomeObject\n{\n    message: string;\n}\n\nexport function createSomeObject(): SomeObject\n{\n    return {\n        message: \"new Object\"\n    };\n}",
+        "signature": "-18933614215-interface SomeObject {\n    message: string;\n}\nexport declare function createSomeObject(): SomeObject;\nexport {};\n",
+        "affectsGlobalScope": false
       }
     },
     "options": {
@@ -205,6 +137,31 @@ export {};
     ]
   },
   "version": "FakeTSVersion"
+}
+
+//// [/user/username/projects/sample1/App/app.js]
+"use strict";
+exports.__esModule = true;
+var library_1 = require("../Library/library");
+library_1.createSomeObject().message;
+
+
+
+Change:: Introduce error
+
+Input::
+//// [/user/username/projects/sample1/Library/library.ts]
+
+interface SomeObject
+{
+    message2: string;
+}
+
+export function createSomeObject(): SomeObject
+{
+    return {
+        message2: "new Object"
+    };
 }
 
 
@@ -268,29 +225,13 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
-Change:: Fix error
-
-//// [/user/username/projects/sample1/Library/library.ts]
-
-interface SomeObject
-{
-    message: string;
-}
-
-export function createSomeObject(): SomeObject
-{
-    return {
-        message: "new Object"
-    };
-}
-
 //// [/user/username/projects/sample1/Library/library.js]
 "use strict";
 exports.__esModule = true;
 exports.createSomeObject = void 0;
 function createSomeObject() {
     return {
-        message: "new Object"
+        message2: "new Object"
     };
 }
 exports.createSomeObject = createSomeObject;
@@ -298,7 +239,7 @@ exports.createSomeObject = createSomeObject;
 
 //// [/user/username/projects/sample1/Library/library.d.ts]
 interface SomeObject {
-    message: string;
+    message2: string;
 }
 export declare function createSomeObject(): SomeObject;
 export {};
@@ -310,11 +251,13 @@ export {};
     "fileInfos": {
       "../../../../../a/lib/lib.d.ts": {
         "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
-        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }"
+        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "affectsGlobalScope": true
       },
       "./library.ts": {
-        "version": "5256469508-\ninterface SomeObject\n{\n    message: string;\n}\n\nexport function createSomeObject(): SomeObject\n{\n    return {\n        message: \"new Object\"\n    };\n}",
-        "signature": "-18933614215-interface SomeObject {\n    message: string;\n}\nexport declare function createSomeObject(): SomeObject;\nexport {};\n"
+        "version": "-9741349880-\ninterface SomeObject\n{\n    message2: string;\n}\n\nexport function createSomeObject(): SomeObject\n{\n    return {\n        message2: \"new Object\"\n    };\n}",
+        "signature": "1956297931-interface SomeObject {\n    message2: string;\n}\nexport declare function createSomeObject(): SomeObject;\nexport {};\n",
+        "affectsGlobalScope": false
       }
     },
     "options": {
@@ -332,7 +275,24 @@ export {};
   "version": "FakeTSVersion"
 }
 
-//// [/user/username/projects/sample1/App/app.js] file written with same contents
+
+Change:: Fix error
+
+Input::
+//// [/user/username/projects/sample1/Library/library.ts]
+
+interface SomeObject
+{
+    message: string;
+}
+
+export function createSomeObject(): SomeObject
+{
+    return {
+        message: "new Object"
+    };
+}
+
 
 Output::
 >> Screen clear
@@ -382,3 +342,55 @@ FsWatchesRecursive::
   {"directoryName":"/user/username/projects/sample1/app","fallbackPollingInterval":500,"fallbackOptions":{"watchFile":"PriorityPollingInterval"}}
 
 exitCode:: ExitStatus.undefined
+
+//// [/user/username/projects/sample1/Library/library.js]
+"use strict";
+exports.__esModule = true;
+exports.createSomeObject = void 0;
+function createSomeObject() {
+    return {
+        message: "new Object"
+    };
+}
+exports.createSomeObject = createSomeObject;
+
+
+//// [/user/username/projects/sample1/Library/library.d.ts]
+interface SomeObject {
+    message: string;
+}
+export declare function createSomeObject(): SomeObject;
+export {};
+
+
+//// [/user/username/projects/sample1/Library/tsconfig.tsbuildinfo]
+{
+  "program": {
+    "fileInfos": {
+      "../../../../../a/lib/lib.d.ts": {
+        "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "affectsGlobalScope": true
+      },
+      "./library.ts": {
+        "version": "5256469508-\ninterface SomeObject\n{\n    message: string;\n}\n\nexport function createSomeObject(): SomeObject\n{\n    return {\n        message: \"new Object\"\n    };\n}",
+        "signature": "-18933614215-interface SomeObject {\n    message: string;\n}\nexport declare function createSomeObject(): SomeObject;\nexport {};\n",
+        "affectsGlobalScope": false
+      }
+    },
+    "options": {
+      "composite": true,
+      "watch": true,
+      "configFilePath": "./tsconfig.json"
+    },
+    "referencedMap": {},
+    "exportedModulesMap": {},
+    "semanticDiagnosticsPerFile": [
+      "../../../../../a/lib/lib.d.ts",
+      "./library.ts"
+    ]
+  },
+  "version": "FakeTSVersion"
+}
+
+//// [/user/username/projects/sample1/App/app.js] file written with same contents

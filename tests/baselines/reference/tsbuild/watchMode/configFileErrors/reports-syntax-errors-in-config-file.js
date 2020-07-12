@@ -1,4 +1,4 @@
-/a/lib/tsc.js --b -w
+Input::
 //// [/user/username/projects/myproject/a.ts]
 export function foo() { }
 
@@ -30,6 +30,7 @@ interface String { charAt: any; }
 interface Array<T> { length: number; [n: number]: T; }
 
 
+/a/lib/tsc.js --b -w
 Output::
 >> Screen clear
 [[90m12:00:23 AM[0m] Starting compilation in watch mode...
@@ -68,8 +69,10 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
+
 Change:: reports syntax errors after change to config file
 
+Input::
 //// [/user/username/projects/myproject/tsconfig.json]
 {
     "compilerOptions": {
@@ -121,8 +124,10 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
+
 Change:: reports syntax errors after change to ts file
 
+Input::
 //// [/user/username/projects/myproject/a.ts]
 export function fooBar() { }
 
@@ -165,8 +170,10 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
+
 Change:: reports error when there is no change to tsconfig file
 
+Input::
 //// [/user/username/projects/myproject/tsconfig.json] file written with same contents
 
 Output::
@@ -207,68 +214,12 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
+
 Change:: builds after fixing config file errors
 
+Input::
 //// [/user/username/projects/myproject/tsconfig.json]
 {"compilerOptions":{"composite":true,"declaration":true},"files":["a.ts","b.ts"]}
-
-//// [/user/username/projects/myproject/a.js]
-"use strict";
-exports.__esModule = true;
-exports.fooBar = void 0;
-function fooBar() { }
-exports.fooBar = fooBar;
-
-
-//// [/user/username/projects/myproject/a.d.ts]
-export declare function fooBar(): void;
-
-
-//// [/user/username/projects/myproject/b.js]
-"use strict";
-exports.__esModule = true;
-exports.bar = void 0;
-function bar() { }
-exports.bar = bar;
-
-
-//// [/user/username/projects/myproject/b.d.ts]
-export declare function bar(): void;
-
-
-//// [/user/username/projects/myproject/tsconfig.tsbuildinfo]
-{
-  "program": {
-    "fileInfos": {
-      "../../../../a/lib/lib.d.ts": {
-        "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
-        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }"
-      },
-      "./a.ts": {
-        "version": "-3260843409-export function fooBar() { }",
-        "signature": "-6611919720-export declare function fooBar(): void;\n"
-      },
-      "./b.ts": {
-        "version": "1045484683-export function bar() { }",
-        "signature": "-2904461644-export declare function bar(): void;\n"
-      }
-    },
-    "options": {
-      "composite": true,
-      "declaration": true,
-      "watch": true,
-      "configFilePath": "./tsconfig.json"
-    },
-    "referencedMap": {},
-    "exportedModulesMap": {},
-    "semanticDiagnosticsPerFile": [
-      "../../../../a/lib/lib.d.ts",
-      "./a.ts",
-      "./b.ts"
-    ]
-  },
-  "version": "FakeTSVersion"
-}
 
 
 Output::
@@ -305,3 +256,65 @@ FsWatches::
 FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
+
+//// [/user/username/projects/myproject/a.js]
+"use strict";
+exports.__esModule = true;
+exports.fooBar = void 0;
+function fooBar() { }
+exports.fooBar = fooBar;
+
+
+//// [/user/username/projects/myproject/a.d.ts]
+export declare function fooBar(): void;
+
+
+//// [/user/username/projects/myproject/b.js]
+"use strict";
+exports.__esModule = true;
+exports.bar = void 0;
+function bar() { }
+exports.bar = bar;
+
+
+//// [/user/username/projects/myproject/b.d.ts]
+export declare function bar(): void;
+
+
+//// [/user/username/projects/myproject/tsconfig.tsbuildinfo]
+{
+  "program": {
+    "fileInfos": {
+      "../../../../a/lib/lib.d.ts": {
+        "version": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "signature": "-7698705165-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }",
+        "affectsGlobalScope": true
+      },
+      "./a.ts": {
+        "version": "-3260843409-export function fooBar() { }",
+        "signature": "-6611919720-export declare function fooBar(): void;\n",
+        "affectsGlobalScope": false
+      },
+      "./b.ts": {
+        "version": "1045484683-export function bar() { }",
+        "signature": "-2904461644-export declare function bar(): void;\n",
+        "affectsGlobalScope": false
+      }
+    },
+    "options": {
+      "composite": true,
+      "declaration": true,
+      "watch": true,
+      "configFilePath": "./tsconfig.json"
+    },
+    "referencedMap": {},
+    "exportedModulesMap": {},
+    "semanticDiagnosticsPerFile": [
+      "../../../../a/lib/lib.d.ts",
+      "./a.ts",
+      "./b.ts"
+    ]
+  },
+  "version": "FakeTSVersion"
+}
+

@@ -1,4 +1,4 @@
-/a/lib/tsc.js -w -p /a/b/tsconfig.json
+Input::
 //// [/a/b/f1.ts]
 let x = 1;
 
@@ -21,15 +21,8 @@ interface Array<T> { length: number; [n: number]: T; }
 //// [/a/b/tsconfig.json]
 {}
 
-//// [/a/b/f1.js]
-var x = 1;
 
-
-//// [/a/b/f2.js]
-var y = 2;
-
-
-
+/a/lib/tsc.js -w -p /a/b/tsconfig.json
 Output::
 >> Screen clear
 [[90m12:00:17 AM[0m] Starting compilation in watch mode...
@@ -71,8 +64,18 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
+//// [/a/b/f1.js]
+var x = 1;
+
+
+//// [/a/b/f2.js]
+var y = 2;
+
+
+
 Change:: Delete config file
 
+Input::
 //// [/a/b/tsconfig.json] deleted
 
 Output::
@@ -80,7 +83,7 @@ Output::
 [[90m12:00:24 AM[0m] File change detected. Starting incremental compilation...
 
 
-[91merror[0m[90m TS6053: [0mFile '/a/b/tsconfig.json' not found.
+[91merror[0m[90m TS5083: [0mCannot read file '/a/b/tsconfig.json'.
 
 
 
@@ -103,3 +106,4 @@ FsWatchesRecursive::
   {"directoryName":"/a/b","fallbackPollingInterval":500,"fallbackOptions":{"watchFile":"PriorityPollingInterval"}}
 
 exitCode:: ExitStatus.DiagnosticsPresent_OutputsSkipped
+
