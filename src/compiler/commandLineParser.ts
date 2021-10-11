@@ -1024,7 +1024,8 @@ namespace ts {
             name: "testEnvironment",
             type: "boolean",
             affectsSourceFile: true,
-            category: Diagnostics.Advanced_Options,
+            affectsEmit: true,
+            category: Diagnostics.Modules,
             description: Diagnostics.Export_all_members_of_modules_and_publish_all_members_of_classes
         },
         {

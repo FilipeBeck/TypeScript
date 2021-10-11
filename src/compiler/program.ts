@@ -1893,6 +1893,7 @@ namespace ts {
             return emitResult;
 
             function exposeAllDeclarationsForTestPurposes(node: Node): void {
+                const nodeFactory = createBaseNodeFactory()
                 let statements: NodeArray<Statement> | NodeArray<ClassElement>;
 
                 if (isSourceFile(node)) {
@@ -1914,9 +1915,9 @@ namespace ts {
 
                         if (!isAlreadyExposed) {
                             const modifiers = Array.from(statement.modifiers ?? []);
-                            const exposureModifier = createNode(SyntaxKind.ExportKeyword) as Modifier;
+                            const exposureModifier = nodeFactory.createBaseNode(SyntaxKind.ExportKeyword) as Modifier;
                             modifiers.unshift(exposureModifier);
-                            statement.modifiers = createNodeArray(modifiers);
+                            Object.assign(statement, { modifiers: [modifiers] });
                             statement.modifierFlagsCache |= ModifierFlags.Export;
                         }
                     }
